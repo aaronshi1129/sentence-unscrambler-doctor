@@ -1,0 +1,384 @@
+<html>
+<head>
+<base href="">
+<meta charset="UTF-8">
+<title>Sentence Unscrambler</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image: url('https://alittlemoreenglish.weebly.com/uploads/2/6/6/3/26638990/gradient-background-soft-colors-blueish-cloud-sky_orig.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    position: absolute; /* Added for perfect centering */
+    top: 50%; /* Added for perfect centering */
+    left: 50%; /* Added for perfect centering */
+    transform: translate(-50%, -50%); /* Added for perfect centering */
+    background: rgba(26, 42, 108, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 800px;
+    width: 90%;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.scrambled-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.word {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.word:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.word.selected {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
+}
+
+.answer-area {
+    min-height: 50px;
+    margin: 20px 0;
+    padding: 10px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    margin: 5px;
+}
+
+button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.score {
+    font-size: 1.2rem;
+    margin: 20px 0;
+}
+
+.feedback {
+    height: 30px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.author-info {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-align: center;
+}
+
+@keyframes celebrate {
+    0% { transform: scale(1) translate(-50%, -50%); }
+    50% { transform: scale(1.1) translate(-50%, -50%); }
+
+.celebrate {
+    animation: celebrate 0.5s ease-in-out;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    color: black;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-content img {
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close-modal {
+    margin-top: 20px;
+    background: #1a2a6c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Sentence Unscrambler (Seeing a Doctor)</h1>
+    <p class="subtitle">Finish 5 sentence unscrambling tasks and earn a Pokemon!</p>
+    <p class="score">Score: <span id="score">0</span></p>
+    <div class="feedback" id="feedback"></div>
+    <div class="scrambled-words" id="scrambledWords"></div>
+    <div class="answer-area" id="answerArea"></div>
+    <button id="checkButton">Check Answer</button>
+    <button id="nextButton">Skip This Sentence</button>
+    <div class="author-info">
+        Author: Aaron Shi<br>
+        Released in 2025.<br>
+    </div>
+</div>
+
+<div class="modal" id="victoryModal">
+    <div class="modal-content">
+        <h2>Congratulations!</h2>
+        <p>You've completed this sentence unscrambling challenge, and you've won this Pokemon!</p>
+        <div id="pokemonImage"></div>
+        <button class="close-modal" onclick="closeModal()">Play Again</button>
+    </div>
+</div>
+
+<script>
+const sentences = [  
+    "I’ve been feeling very tired lately.",  
+    "I’ve had a persistent cough for a week.",  
+    "I’ve been experiencing some stomach pain.",  
+    "My head hurts almost every day.",  
+    "I’m having trouble sleeping at night.",  
+    "I’ve noticed some swelling in my ankles.",  
+    "My back has been hurting for a few days.",  
+    "I’ve been feeling dizzy when I stand up.",  
+    "I’m having trouble breathing after exercise.",  
+    "I’ve been coughing up mucus recently.",  
+    "I’ve had a sore throat for a few days.",  
+    "I’m feeling nauseous after meals.",  
+    "I’ve had frequent headaches this week.",  
+    "I’ve been feeling lightheaded when standing.",  
+    "I’m experiencing pain in my chest.",  
+    "I’ve noticed some changes in my appetite.",  
+    "I’ve been getting sharp pains in my side.",  
+    "My joints are stiff and painful.",  
+    "I’ve had a fever for the last two days.",  
+    "I’ve been feeling short of breath.",  
+    "I’ve been experiencing some blurred vision.",  
+    "I’ve been feeling unusually thirsty.",  
+    "My skin has been itching non-stop.",  
+    "I’ve been having trouble focusing lately.",  
+    "I’ve noticed some bruising that doesn’t go away.",  
+    "I’ve been feeling anxious and stressed out.",  
+    "I’ve had a cold for over a week.",  
+    "I’ve been getting cold sweats recently.",  
+    "I’ve been coughing up blood this morning.",  
+    "I’ve been feeling really weak in the legs.",  
+    "I’ve noticed some rashes on my skin.",  
+    "I’ve been having trouble swallowing food.",  
+    "My stomach feels bloated and uncomfortable.",  
+    "I’ve had some sharp pains in my chest.",  
+    "I’ve been feeling more tired than usual.",  
+    "I’ve had some heartburn after meals.",  
+    "I’ve noticed some weight loss recently.",  
+    "I’ve been having trouble with digestion.",  
+    "I’ve been feeling nauseous all day.",  
+    "I’ve had a stuffy nose for a week.",  
+    "I’ve been getting frequent nosebleeds.",  
+    "I’ve been feeling itchy in my eyes.",  
+    "I’ve had some muscle cramps recently.",  
+    "I’ve noticed a lump in my neck.",  
+    "I’ve been feeling hot and cold intermittently.",  
+    "I’ve been getting a lot of leg cramps.",  
+    "I’ve had some unusual pain in my ribs.",  
+    "I’ve been feeling dizzy when I wake up.",  
+    "I’ve been getting ringing in my ears.",  
+    "I’ve had trouble concentrating lately.",  
+    "I’ve had some trouble with my balance.",  
+    "I’ve been experiencing shortness of breath after walking.",  
+    "I’ve noticed some swelling in my hands.",  
+    "I’ve been feeling a bit down recently."  
+];
+
+
+let currentSentence = "";
+let selectedWords = [];
+let score = 0;
+let hasScored = false;
+
+async function showVictoryModal() {
+    const modal = document.getElementById("victoryModal");
+    const pokemonId = Math.floor(Math.random() * 898) + 1;
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+    const data = await response.json();
+    
+    const pokemonImageDiv = document.getElementById("pokemonImage");
+    const img = document.createElement("img");
+    img.src = data.sprites.other["official-artwork"].front_default;
+    img.alt = `${data.name} Pokemon artwork`;
+    img.width = 300;
+    img.height = 300;
+    
+    pokemonImageDiv.innerHTML = "";
+    pokemonImageDiv.appendChild(img);
+    modal.style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("victoryModal").style.display = "none";
+    resetGame();
+}
+
+function scrambleWords(sentence) {
+    return sentence.split(" ")
+        .map(word => ({word, sort: Math.random()}))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({word}) => word);
+}
+
+function updateDisplay() {
+    const scrambledWordsDiv = document.getElementById("scrambledWords");
+    const answerAreaDiv = document.getElementById("answerArea");
+    
+    scrambledWordsDiv.innerHTML = "";
+    currentScrambled.forEach((word, index) => {
+        if (!selectedWords.includes(index)) {
+            const wordDiv = document.createElement("div");
+            wordDiv.className = "word";
+            wordDiv.textContent = word;
+            wordDiv.dataset.index = index;
+            scrambledWordsDiv.appendChild(wordDiv);
+        }
+    });
+    
+    answerAreaDiv.innerHTML = "";
+    selectedWords.forEach((wordIndex) => {
+        const wordDiv = document.createElement("div");
+        wordDiv.className = "word";
+        wordDiv.textContent = currentScrambled[wordIndex];
+        wordDiv.dataset.index = wordIndex;
+        answerAreaDiv.appendChild(wordDiv);
+    });
+}
+
+function checkAnswer() {
+    const currentAnswer = selectedWords.map(index => currentScrambled[index]).join(" ");
+    const feedback = document.getElementById("feedback");
+    
+    if (currentAnswer === currentSentence) {
+        if (!hasScored) {
+            score += 10;
+            document.getElementById("score").textContent = score;
+            hasScored = true;
+        }
+        feedback.textContent = "Correct! +10 points";
+        feedback.style.color = "#00ff00";
+        document.querySelector(".container").classList.add("celebrate");
+        setTimeout(() => {
+            document.querySelector(".container").classList.remove("celebrate");
+        }, 500);
+        
+        if (score >= 50) {  
+            showVictoryModal();
+        } else {
+            setTimeout(newSentence, 2000);
+        }
+    } else {
+        feedback.textContent = "Try again!";
+        feedback.style.color = "#ff0000";
+    }
+}
+
+function newSentence() {
+    currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
+    currentScrambled = scrambleWords(currentSentence);
+    selectedWords = [];
+    hasScored = false;
+    document.getElementById("feedback").textContent = "";
+    updateDisplay();
+}
+
+function resetGame() {
+    score = 0;
+    hasScored = false;
+    document.getElementById("score").textContent = score;
+    newSentence();
+}
+
+let currentScrambled = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("scrambledWords").addEventListener("click", (e) => {
+        if (e.target.classList.contains("word")) {
+            const index = parseInt(e.target.dataset.index);
+            if (!selectedWords.includes(index)) {
+                selectedWords.push(index);
+                updateDisplay();
+            }
+        }
+    });
+
+    document.getElementById("answerArea").addEventListener("click", (e) => {
+        if (e.target.classList.contains("word")) {
+            const index = parseInt(e.target.dataset.index);
+            selectedWords = selectedWords.filter(i => i !== index);
+            updateDisplay();
+        }
+    });
+
+    document.getElementById("checkButton").addEventListener("click", checkAnswer);
+    document.getElementById("nextButton").addEventListener("click", newSentence);
+
+    resetGame();
+});
+</script>
+</body>
+</html>
